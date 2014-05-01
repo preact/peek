@@ -18,6 +18,18 @@ module Peek
     _request_id.update { id }
   end
 
+  def self._request_params
+    @_request_params ||= Atomic.new
+  end
+
+  def self.request_params
+    _request_params.get
+  end
+
+  def self.request_params=(hash)
+    _request_params.update { hash }
+  end
+
   def self.adapter
     @adapter
   end
@@ -64,8 +76,10 @@ module Peek
 
   def self.results
     results = {
+      :id => request_id,
       :context => {},
-      :data => Hash.new { |h, k| h[k] = {} }
+      :data => Hash.new { |h, k| h[k] = {} },
+      :request => { :params => request_params }
     }
 
     views.each do |view|
@@ -100,6 +114,7 @@ module Peek
   # Returns nothing.
   def self.clear
     _request_id.update { '' }
+    _request_params.update { '' }
   end
 
   def self.setup

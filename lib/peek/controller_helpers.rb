@@ -10,6 +10,7 @@ module Peek
     protected
 
     def set_peek_request_id
+      Peek.request_params = env['action_dispatch.request.path_parameters']
       Peek.request_id = env['action_dispatch.request_id']
     end
 

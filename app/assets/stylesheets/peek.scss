@@ -65,4 +65,26 @@
       margin-right: 0;
     }
   }
+
+  #peek-prev,
+  #peek-next {
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  #peek-request {
+    position: relative;
+
+    .params {
+      display: none;
+      position: absolute;
+      top: 35px;
+      left: 0;
+      background-color: black;
+      padding: 0 10px;
+    }
+  }
 }

@@ -1,6 +1,9 @@
 #= require peek/vendor/jquery.tipsy
 
 requestId = null
+pastResults = []
+seenIds = []
+currentIndex = 0
 
 getRequestId = ->
   if requestId? then requestId else $('#peek').data('request-id')
@@ -8,10 +11,37 @@ getRequestId = ->
 peekEnabled = ->
   $('#peek').length
 
-updatePerformanceBar = (results) ->
+gotNewResults = (results) ->
+  if seenIds.indexOf(results.id) < 0
+    pastResults.push(results)
+    seenIds.push(results.id)
+    updatePerformanceBar(pastResults.length - 1)
+
+prevResult = ->
+  if currentIndex > 0
+    updatePerformanceBar(currentIndex - 1)
+
+nextResult = ->
+  if currentIndex < pastResults.length - 1
+    updatePerformanceBar(currentIndex + 1)
+
+showRequestParams = ->
+  $("#peek-request .params").show
+
+hideRequestParams = ->
+  $("#peek-request .params").hide
+
+updatePerformanceBar = (index) ->
+  currentIndex = index
+  results = pastResults[index]
   for key of results.data
     for label of results.data[key]
       $("[data-defer-to=#{key}-#{label}]").text results.data[key][label]
+  $("#peek-count").text( (index + 1) + " of " + pastResults.length )
+  if results.request && results.request.params
+    routeText = results.request.params.controller.split("/").reverse()[0] + "#" + results.request.params.action
+    $("#peek-request .route").text( routeText )
+    $("#peek-request .params").text( $.param(results.request.params) )
   $(document).trigger 'peek:render', [getRequestId(), results]
 
 initializeTipsy = ->
@@ -42,7 +72,7 @@ fetchRequestResults = ->
     data:
       request_id: getRequestId()
     success: (data, textStatus, xhr) ->
-      updatePerformanceBar data
+      gotNewResults data
     error: (xhr, textStatus, error) ->
       # Swallow the error
 
@@ -67,3 +97,6 @@ $(document).on 'page:change', ->
 $ ->
   if peekEnabled()
     $(this).trigger 'peek:update'
+
+    $("#peek-prev").on 'click', prevResult
+    $("#peek-next").on 'click', nextResult  
